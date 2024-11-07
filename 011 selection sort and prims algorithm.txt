@@ -1,0 +1,48 @@
+import sys
+
+# Selection Sort Implementation
+def selection_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        min_index = i
+        for j in range(i + 1, n):
+            if arr[j] < arr[min_index]:
+                min_index = j
+        arr[i], arr[min_index] = arr[min_index], arr[i]
+    return arr
+
+# Prim's Algorithm Implementation
+def prim(graph):
+    n = len(graph)
+    selected_node = [False] * n
+    selected_node[0] = True
+    edges = []
+
+    while len(edges) < n - 1:
+        min_edge = (None, None, sys.maxsize)
+        for u in range(n):
+            if selected_node[u]:
+                for v, weight in enumerate(graph[u]):
+                    if not selected_node[v] and weight > 0:
+                        if weight < min_edge[2]:
+                            min_edge = (u, v, weight)
+        u, v, weight = min_edge
+        edges.append((u, v, weight))
+        selected_node[v] = True
+    return edges
+
+# Selection Sort with static input
+arr = [64, 25, 12, 22, 11]
+sorted_arr = selection_sort(arr)
+print("Sorted Array using Selection Sort:", sorted_arr)
+
+# Prim's Algorithm with static input
+graph = [
+    [0, 2, 0, 6, 0],
+    [2, 0, 3, 8, 5],
+    [0, 3, 0, 0, 7],
+    [6, 8, 0, 0, 9],
+    [0, 5, 7, 9, 0]
+]
+mst = prim(graph)
+print("Minimum Spanning Tree (Prim's):", mst)

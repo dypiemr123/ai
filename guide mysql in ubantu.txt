@@ -1,0 +1,40 @@
+To access MySQL on Ubuntu, follow these steps:
+
+1. **Install MySQL (if not installed)**:
+   ```bash
+   sudo apt update
+   sudo apt install mysql-server
+   ```
+
+2. **Start the MySQL Service** (if it isn’t already running):
+   ```bash
+   sudo systemctl start mysql
+   ```
+
+3. **Secure MySQL Installation** (optional but recommended):
+   Run the following command to set up security options, such as setting a root password and removing test databases:
+   ```bash
+   sudo mysql_secure_installation
+   ```
+
+4. **Log in to MySQL**:
+   Use the following command to log in as the root user:
+   ```bash
+   sudo mysql -u root -p
+   ```
+   After entering the above command, you will be prompted to enter the MySQL root password.
+
+5. **Access MySQL Prompt**:
+   If your login is successful, you’ll see the MySQL prompt:
+   ```sql
+   mysql>
+   ```
+   From here, you can run SQL queries and manage your databases.
+
+6. **Exit MySQL**:
+   To exit the MySQL prompt, type:
+   ```sql
+   exit;
+   ```
+
+This setup provides full access to MySQL on Ubuntu, allowing you to manage databases and users effectively.

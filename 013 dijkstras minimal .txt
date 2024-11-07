@@ -1,0 +1,46 @@
+import sys
+
+# Dijkstra's Algorithm Implementation
+def dijkstra(graph, start):
+    n = len(graph)
+    distances = {node: sys.maxsize for node in range(n)}
+    distances[start] = 0
+    visited = set()
+
+    while len(visited) < n:
+        min_node = None
+        for node in range(n):
+            if node not in visited and (min_node is None or distances[node] < distances[min_node]):
+                min_node = node
+
+        if distances[min_node] == sys.maxsize:
+            break
+
+        visited.add(min_node)
+        for neighbor, weight in enumerate(graph[min_node]):
+            if weight > 0 and neighbor not in visited:
+                new_distance = distances[min_node] + weight
+                if new_distance < distances[neighbor]:
+                    distances[neighbor] = new_distance
+    return distances
+
+# Main Program
+def main():
+    # Dijkstra's Algorithm with static input
+    n = 5  # Number of nodes
+    graph = [
+        [0, 10, 0, 0, 0],
+        [10, 0, 20, 0, 0],
+        [0, 20, 0, 10, 30],
+        [0, 0, 10, 0, 40],
+        [0, 0, 30, 40, 0]
+    ]  # Static adjacency matrix
+    start = 0  # Starting node
+    print("Graph (Adjacency Matrix):")
+    for row in graph:
+        print(row)
+    distances = dijkstra(graph, start)
+    print("Shortest distances from node", start, ":", distances)
+
+if __name__ == "__main__":
+    main()

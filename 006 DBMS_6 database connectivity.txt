@@ -1,0 +1,55 @@
+import mysql.connector
+
+# Database connection
+def connect():
+    return mysql.connector.connect(
+        host="localhost", user="root", password="7065", database="Aadesh_college"
+    )
+
+# Create the 'students' table if it doesn't exist
+def init_db():
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS students (
+            Student_ID INT AUTO_INCREMENT PRIMARY KEY,
+            Student_Name VARCHAR(255),
+            Course VARCHAR(255),
+            Age INT
+        )
+    """)
+    conn.close()
+
+# Add, delete, update or view students
+def db_operation(query, values=()):
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute(query, values)
+    conn.commit()
+    conn.close()
+
+# Main menu
+def menu():
+    init_db()
+    while True:
+        choice = input("\n1. Add  2. Delete  3. Update  4. View  5. Exit: ")
+        if choice == '1':
+            db_operation("INSERT INTO students (Student_Name, Course, Age) VALUES (%s, %s, %s)",
+                         (input("Name: "), input("Course: "), int(input("Age: "))))
+        elif choice == '2':
+            db_operation("DELETE FROM students WHERE Student_ID = %s", (int(input("Student ID to delete: ")),))
+        elif choice == '3':
+            db_operation("UPDATE students SET Student_Name=%s, Course=%s, Age=%s WHERE Student_ID=%s",
+                         (input("New Name: "), input("New Course: "), int(input("New Age: ")), int(input("Student ID: "))))
+        elif choice == '4':
+            conn = connect()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM students")
+            for student in cursor.fetchall():
+                print(f"ID: {student[0]}, Name: {student[1]}, Course: {student[2]}, Age: {student[3]}")
+            conn.close()
+        elif choice == '5':
+            break
+
+if __name__ == "__main__":
+    menu()

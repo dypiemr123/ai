@@ -1,0 +1,65 @@
+from collections import deque
+
+# Class to represent an undirected graph
+class Graph:
+    def __init__(self, vertices):
+        self.vertices = vertices  # Number of vertices
+        self.graph = {i: [] for i in range(vertices)}  # Adjacency list representation
+
+    # Add an edge to the undirected graph
+    def add_edge(self, u, v):
+        self.graph[u].append(v)
+        self.graph[v].append(u)
+
+    # DFS algorithm
+    def dfs(self, start):
+        visited = [False] * self.vertices  # To track visited nodes
+        self._dfs_helper(start, visited)
+
+    # Helper function for DFS (using recursion)
+    def _dfs_helper(self, node, visited):
+        visited[node] = True
+        print(node, end=" ")
+
+        # Recur for all the vertices adjacent to this vertex
+        for neighbor in self.graph[node]:
+            if not visited[neighbor]:
+                self._dfs_helper(neighbor, visited)
+
+    # BFS algorithm
+    def bfs(self, start):
+        visited = [False] * self.vertices  # To track visited nodes
+        queue = deque([start])  # Queue for BFS
+        visited[start] = True
+
+        while queue:
+            node = queue.popleft()
+            print(node, end=" ")
+
+            # Visit all the adjacent vertices of the current node
+            for neighbor in self.graph[node]:
+                if not visited[neighbor]:
+                    queue.append(neighbor)
+                    visited[neighbor] = True
+
+
+# Example usage
+if __name__ == "__main__":
+    # Create a graph with 6 vertices (0 to 5)
+    g = Graph(6)
+
+    # Add edges to the graph
+    g.add_edge(0, 1)
+    g.add_edge(0, 2)
+    g.add_edge(1, 3)
+    g.add_edge(1, 4)
+    g.add_edge(2, 5)
+
+    # Perform DFS starting from vertex 0
+    print("DFS Traversal:")
+    g.dfs(0)
+    print("\n")
+
+    # Perform BFS starting from vertex 0
+    print("BFS Traversal:")
+    g.bfs(0)

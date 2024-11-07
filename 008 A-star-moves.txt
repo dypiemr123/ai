@@ -1,0 +1,60 @@
+import heapq
+
+def a_star_search(start, goal, heuristic, possible_moves):
+    open_list = []
+    closed_set = set()
+    heapq.heappush(open_list, (0 + heuristic(start, goal), start))  # Priority = cost + heuristic
+    came_from = {start: None}
+    cost_so_far = {start: 0}
+
+    while open_list:
+        _, current = heapq.heappop(open_list)
+
+        if current == goal:
+            break
+        
+        closed_set.add(current)
+
+        # For each possible move, calculate the new state
+        for move in possible_moves:
+            new_state = current + move
+            new_cost = cost_so_far[current] + 1  # Assuming each move has a cost of 1
+
+            # Check if the new state is valid to explore
+            if new_state not in closed_set and (new_state not in cost_so_far or new_cost < cost_so_far[new_state]):
+                cost_so_far[new_state] = new_cost
+                priority = new_cost + heuristic(new_state, goal)
+                heapq.heappush(open_list, (priority, new_state))
+                came_from[new_state] = current
+
+    return came_from, cost_so_far
+
+def heuristic(state, goal):
+    # Simple heuristic: absolute difference between state and goal (can be modified based on problem)
+    return abs(state - goal)
+
+def main():
+    # Static values
+    possible_moves = [-1, 1]  # Example moves (can move left or right by 1)
+    start_state = 5  # Static starting state
+    goal_state = 10  # Static goal state
+
+    came_from, cost_so_far = a_star_search(start_state, goal_state, heuristic, possible_moves)
+
+    if goal_state not in came_from:
+        print("Goal state is unreachable.")
+        return
+
+    # Reconstruct the path from the came_from dictionary
+    path = []
+    current = goal_state
+    while current is not None:
+        path.append(current)
+        current = came_from[current]
+    path.reverse()
+
+    print("Path:", path)
+    print("Total cost:", cost_so_far[goal_state])
+
+if __name__ == "__main__":
+    main()

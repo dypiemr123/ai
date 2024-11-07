@@ -1,0 +1,308 @@
+CREATE DATABASE Moin_6;
+USE Moin_6;
+
+-- Creating Accounts table
+CREATE TABLE accounts (
+    account_no INT PRIMARY KEY,
+    customer_name VARCHAR(50),
+    last_transaction_date DATE,
+    status VARCHAR(10)
+);
+
+-- Inserting sample data into accounts
+INSERT INTO accounts (account_no, customer_name, last_transaction_date, status) 
+VALUES
+(101, 'Amit Sharma', '2023-05-10', 'Active'),
+(102, 'Ravi Verma', '2022-07-10', 'Inactive'),
+(103, 'Pooja Iyer', '2021-09-15', 'Inactive'),
+(104, 'Suresh Nair', '2023-02-11', 'Active'),
+(105, 'Kavita Gupta', '2021-01-01', 'Inactive');
+
+-- Creating EMP table with d_no column for department identification
+CREATE TABLE EMP (
+    e_no INT PRIMARY KEY,
+    salary DECIMAL(10, 2),
+    d_no INT
+);
+
+-- Creating increment_salary table
+CREATE TABLE increment_salary (
+    e_no INT PRIMARY KEY,
+    salary DECIMAL(10, 2)
+);
+
+-- Inserting sample data into EMP
+INSERT INTO EMP (e_no, salary, d_no) 
+VALUES
+(201, 30000.00, 1),
+(202, 45000.00, 1),
+(203, 20000.00, 2),
+(204, 35000.00, 2),
+(205, 25000.00, 3);
+
+-- Creating Student and Detained tables
+CREATE TABLE stud21 (
+    roll INT PRIMARY KEY,
+    att DECIMAL(5,2),
+    status VARCHAR(1)
+);
+
+CREATE TABLE d_stud (
+    roll INT PRIMARY KEY,
+    att DECIMAL(5,2)
+);
+
+-- Inserting sample data into stud21
+INSERT INTO stud21 (roll, att, status) 
+VALUES
+(301, 85.00, 'P'),
+(302, 65.00, 'P'),
+(303, 72.50, 'P'),
+(304, 90.00, 'P'),
+(305, 60.00, 'P');
+
+-- Creating tables for RollCall merge
+CREATE TABLE N_RollCall (
+    roll INT PRIMARY KEY,
+    att DECIMAL(5,2)
+);
+
+CREATE TABLE O_RollCall (
+    roll INT PRIMARY KEY,
+    att DECIMAL(5,2)
+);
+
+-- Inserting sample data into N_RollCall
+INSERT INTO N_RollCall (roll, att) 
+VALUES
+(401, 85.00),
+(402, 70.00),
+(403, 75.00),
+(404, 95.00),
+(405, 65.00);
+
+-- Inserting sample data into O_RollCall
+INSERT INTO O_RollCall (roll, att) 
+VALUES
+(501, 80.00),
+(502, 60.00),
+(503, 75.00),
+(504, 95.00),
+(505, 68.00);
+
+-- Creating dept_salary table
+CREATE TABLE dept_salary (
+    d_no INT PRIMARY KEY,
+    avg_salary DECIMAL(10, 2)
+);
+
+-- Q1: Procedure to activate inactive accounts
+DELIMITER $$
+
+CREATE PROCEDURE activate_inactive_accounts()
+BEGIN
+    DECLARE affected_rows INT DEFAULT 0;
+
+    -- Updating inactive accounts
+    UPDATE accounts
+    SET status = 'Active'
+    WHERE last_transaction_date < CURDATE() - INTERVAL 365 DAY
+    AND status = 'Inactive';
+
+    -- Fetching number of rows affected
+    SET affected_rows = ROW_COUNT();
+
+    IF affected_rows > 0 THEN
+        SELECT CONCAT(affected_rows, ' account(s) have been activated.') AS message;
+    ELSE
+        SELECT 'No inactive accounts found.' AS message;
+    END IF;
+END $$
+
+DELIMITER ;
+
+-- Q2: Procedure to update salaries below the average
+DELIMITER $$
+
+CREATE PROCEDURE update_salary_below_avg()
+BEGIN
+    DECLARE v_e_no INT;
+    DECLARE v_salary DECIMAL(10, 2);
+    DECLARE done INT DEFAULT 0;
+
+    -- Average salary of the organization
+    DECLARE avg_salary DECIMAL(10, 2);
+
+    DECLARE emp_cursor CURSOR FOR
+    SELECT e_no, salary FROM EMP WHERE salary < avg_salary;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Fetching average salary
+    SELECT AVG(salary) INTO avg_salary FROM EMP;
+
+    OPEN emp_cursor;
+
+    read_loop: LOOP
+        FETCH emp_cursor INTO v_e_no, v_salary;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Update salary by 10%
+        UPDATE EMP
+        SET salary = salary * 1.1
+        WHERE e_no = v_e_no;
+
+        -- Insert into increment_salary table
+        INSERT INTO increment_salary (e_no, salary)
+        VALUES (v_e_no, v_salary * 1.1);
+    END LOOP;
+
+    CLOSE emp_cursor;
+END $$
+
+DELIMITER ;
+
+-- Q3: Procedure to detain students
+DELIMITER $$
+
+CREATE PROCEDURE detain_students()
+BEGIN
+    DECLARE v_roll INT;
+    DECLARE v_att DECIMAL(5, 2);
+    DECLARE done INT DEFAULT 0;
+
+    DECLARE stud_cursor CURSOR FOR
+    SELECT roll, att FROM stud21 WHERE att < 75;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN stud_cursor;
+
+    read_loop: LOOP
+        FETCH stud_cursor INTO v_roll, v_att;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Update status to 'D'
+        UPDATE stud21
+        SET status = 'D'
+        WHERE roll = v_roll;
+
+        -- Insert into d_stud table
+        INSERT INTO d_stud (roll, att)
+        VALUES (v_roll, v_att);
+    END LOOP;
+
+    CLOSE stud_cursor;
+END $$
+
+DELIMITER ;
+
+-- Q4: Procedure to merge rollcall data
+DELIMITER $$
+
+CREATE PROCEDURE merge_rollcall_data(p_roll INT)
+BEGIN
+    DECLARE v_roll INT;
+    DECLARE v_att DECIMAL(5, 2);
+    DECLARE done INT DEFAULT 0;
+
+    DECLARE roll_cursor CURSOR FOR
+    SELECT roll, att FROM N_RollCall WHERE roll = p_roll;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN roll_cursor;
+
+    read_loop: LOOP
+        FETCH roll_cursor INTO v_roll, v_att;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Check if data exists in O_RollCall
+        IF NOT EXISTS (SELECT 1 FROM O_RollCall WHERE roll = v_roll) THEN
+            INSERT INTO O_RollCall (roll, att)
+            VALUES (v_roll, v_att);
+        END IF;
+    END LOOP;
+
+    CLOSE roll_cursor;
+END $$
+
+DELIMITER ;
+
+-- Q5: Procedure to insert department average salary
+DELIMITER $$
+
+CREATE PROCEDURE insert_dept_avg_salary()
+BEGIN
+    DECLARE v_d_no INT;
+    DECLARE v_avg_salary DECIMAL(10, 2);
+    DECLARE done INT DEFAULT 0;
+
+    DECLARE dept_cursor CURSOR FOR
+    SELECT d_no FROM EMP GROUP BY d_no;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN dept_cursor;
+
+    read_loop: LOOP
+        FETCH dept_cursor INTO v_d_no;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Calculate department-wise average salary
+        SELECT AVG(salary) INTO v_avg_salary FROM EMP WHERE d_no = v_d_no;
+
+        -- Insert into dept_salary table
+        INSERT INTO dept_salary (d_no, avg_salary)
+        VALUES (v_d_no, v_avg_salary);
+    END LOOP;
+
+    CLOSE dept_cursor;
+END $$
+
+DELIMITER ;
+
+-- Q6: Procedure to detain students using a for-loop
+DELIMITER $$
+
+CREATE PROCEDURE detain_students_for_loop()
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE v_roll INT;
+    DECLARE v_att DECIMAL(5,2);
+
+    DECLARE stud_cursor CURSOR FOR 
+    SELECT roll, att FROM stud21 WHERE att < 75;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN stud_cursor;
+
+    stud_loop: LOOP
+        FETCH stud_cursor INTO v_roll, v_att;
+        IF done = 1 THEN 
+            LEAVE stud_loop;
+        END IF;
+        
+        UPDATE stud21
+        SET status = 'D'
+        WHERE roll = v_roll;
+
+        INSERT INTO d_stud (roll, att)
+        VALUES (v_roll, v_att);
+    END LOOP stud_loop;
+
+    CLOSE stud_cursor;
+    
+    SELECT 'Detained students updated successfully' AS message;
+END $$
+
+DELIMITER ;

@@ -1,0 +1,64 @@
+use DYPIEMR;
+db.createCollection("Teachers");
+db.createCollection("Students");
+
+// Sample data for Teachers collection
+db.Teachers.insertMany([
+    { Tname: "Praveen", dno: 1, dname: "IT", experience: 5, salary: 12000, date_of_joining: new Date("2018-06-01") },
+    { Tname: "Sita", dno: 2, dname: "Computer", experience: 3, salary: 9000, date_of_joining: new Date("2020-07-15") },
+    { Tname: "Ramesh", dno: 3, dname: "E&TC", experience: 8, salary: 15000, date_of_joining: new Date("2015-08-20") },
+    { Tname: "Amit", dno: 4, dname: "IT", experience: 2, salary: 8000, date_of_joining: new Date("2021-05-10") }
+]);
+
+// Sample data for Students collection
+db.Students.insertMany([
+    { Sname: "John", roll_no: 1, class: "12A" },
+    { Sname: "xyz", roll_no: 2, class: "12B" },
+    { Sname: "Mike", roll_no: 3, class: "12C" }
+]);
+
+// Find all teachers
+db.Teachers.find().pretty();
+
+// Find teachers in the "Computer" department
+db.Teachers.find({ dname: "Computer" }).pretty();
+
+// Find teachers in specified departments
+db.Teachers.find({ 
+    dname: { $in: ["Computer", "IT", "E&TC"] } 
+}).pretty();
+
+// Find teachers in specified departments with salary >= 10000
+db.Teachers.find({ 
+    dname: { $in: ["Computer", "IT", "E&TC"] }, 
+    salary: { $gte: 10000 } 
+}).pretty();
+
+// Find students by roll number or name
+db.Students.find({ 
+    $or: [
+        { roll_no: 2 }, 
+        { Sname: "xyz" } 
+    ] 
+}).pretty();
+
+// Update experience of teacher named "Praveen"
+db.Teachers.updateOne(
+    { Tname: "Praveen" },
+    { $set: { experience: 10 } }
+);
+
+// Update department name for all "IT" teachers to "COMP"
+db.Teachers.updateMany(
+    { dname: "IT" },
+    { $set: { dname: "COMP" } }
+);
+
+// Show only Tname and experience fields for all teachers
+db.Teachers.find({}, { Tname: 1, experience: 1 }).pretty();
+
+// Delete teachers from the "IT" department
+db.Teachers.deleteMany({ dname: "IT" });
+
+// Sort teachers by name and limit to 3 results
+db.Teachers.find().sort({ Tname: 1 }).limit(3).pretty();

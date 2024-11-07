@@ -1,0 +1,155 @@
+import sys
+
+def menu():
+    print("\n--- Algorithm Menu ---")
+    print("1. Selection Sort")
+    print("2. Dijkstra's Algorithm")
+    print("3. Prim's Algorithm")
+    print("4. Kruskal's Algorithm")
+    print("5. Exit")
+
+# Selection Sort Implementation
+def selection_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        min_index = i
+        for j in range(i + 1, n):
+            if arr[j] < arr[min_index]:
+                min_index = j
+        arr[i], arr[min_index] = arr[min_index], arr[i]
+    return arr
+
+# Dijkstra's Algorithm Implementation
+def dijkstra(graph, start):
+    n = len(graph)
+    distances = {node: sys.maxsize for node in range(n)}
+    distances[start] = 0
+    visited = set()
+
+    while len(visited) < n:
+        min_node = None
+        for node in range(n):
+            if node not in visited and (min_node is None or distances[node] < distances[min_node]):
+                min_node = node
+
+        if distances[min_node] == sys.maxsize:
+            break
+
+        visited.add(min_node)
+        for neighbor, weight in enumerate(graph[min_node]):
+            if weight > 0 and neighbor not in visited:
+                new_distance = distances[min_node] + weight
+                if new_distance < distances[neighbor]:
+                    distances[neighbor] = new_distance
+    return distances
+
+# Prim's Algorithm Implementation
+def prim(graph):
+    n = len(graph)
+    selected_node = [False] * n
+    selected_node[0] = True
+    edges = []
+
+    while len(edges) < n - 1:
+        min_edge = (None, None, sys.maxsize)
+        for u in range(n):
+            if selected_node[u]:
+                for v, weight in enumerate(graph[u]):
+                    if not selected_node[v] and weight > 0:
+                        if weight < min_edge[2]:
+                            min_edge = (u, v, weight)
+        u, v, weight = min_edge
+        edges.append((u, v, weight))
+        selected_node[v] = True
+    return edges
+
+# Kruskal's Algorithm Implementation
+class DisjointSet:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.rank = [0] * n
+
+    def find(self, u):
+        if self.parent[u] != u:
+            self.parent[u] = self.find(self.parent[u])
+        return self.parent[u]
+
+    def union(self, u, v):
+        root_u = self.find(u)
+        root_v = self.find(v)
+        if root_u != root_v:
+            if self.rank[root_u] > self.rank[root_v]:
+                self.parent[root_v] = root_u
+            elif self.rank[root_u] < self.rank[root_v]:
+                self.parent[root_u] = root_v
+            else:
+                self.parent[root_v] = root_u
+                self.rank[root_u] += 1
+
+def kruskal(n, edges):
+    edges = sorted(edges, key=lambda edge: edge[2])
+    ds = DisjointSet(n)
+    mst = []
+
+    for u, v, weight in edges:
+        if ds.find(u) != ds.find(v):
+            mst.append((u, v, weight))
+            ds.union(u, v)
+    return mst
+
+# Main Program
+def main():
+    while True:
+        menu()
+        choice = input("Enter your choice (1-5): ")
+        
+        if choice == '1':
+            # Selection Sort
+            arr = list(map(int, input("Enter numbers separated by spaces: ").split()))
+            sorted_arr = selection_sort(arr)
+            print("Sorted Array:", sorted_arr)
+
+        elif choice == '2':
+            # Dijkstra's Algorithm
+            n = int(input("Enter the number of nodes: "))
+            graph = []
+            print("Enter the adjacency matrix:")
+            for i in range(n):
+                row = list(map(int, input().split()))
+                graph.append(row)
+            start = int(input("Enter the starting node: "))
+            distances = dijkstra(graph, start)
+            print("Shortest distances from node", start, ":", distances)
+
+        elif choice == '3':
+            # Prim's Algorithm
+            n = int(input("Enter the number of nodes: "))
+            graph = []
+            print("Enter the adjacency matrix:")
+            for i in range(n):
+                row = list(map(int, input().split()))
+                graph.append(row)
+            mst = prim(graph)
+            print("Minimum Spanning Tree (Prim's):", mst)
+
+        elif choice == '4':
+            # Kruskal's Algorithm
+            n = int(input("Enter the number of nodes: "))
+            m = int(input("Enter the number of edges: "))
+            edges = []
+            print("Enter each edge in the format: u v weight")
+            for i in range(m):
+                u, v, weight = map(int, input().split())
+                edges.append((u, v, weight))
+            mst = kruskal(n, edges)
+            print("Minimum Spanning Tree (Kruskal's):", mst)
+
+        elif choice == '5':
+            print("Exiting the program. Goodbye!")
+            break
+
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()

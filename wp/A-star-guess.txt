@@ -1,0 +1,76 @@
+import random
+
+def menu():
+    print("\n--- Number Guessing Game ---")
+    print("1. Play Game")
+    print("2. Exit")
+
+def a_star_guess(target):
+    low, high = 1, 100  # Define the range for guessing
+    steps = 0
+    
+    while low <= high:
+        guess = (low + high) // 2
+        steps += 1
+        print(f"Computer's guess: {guess}")
+        
+        if guess == target:
+            print(f"Computer guessed it in {steps} steps!")
+            return steps
+        elif guess < target:
+            print("Hint: The number is lower!")
+            low = guess + 1
+        else:
+            print("Hint: The number is higher!")
+            high = guess - 1
+    
+    return steps
+
+def user_guess(target):
+    user_steps = 0
+    
+    while True:
+        try:
+            guess = int(input("Enter your guess (1-100): "))
+            user_steps += 1
+            
+            if guess == target:
+                print(f"Congratulations! You guessed the number in {user_steps} steps.")
+                return user_steps
+            elif guess < target:
+                print("Hint: The number is lower!")
+            else:
+                print("Hint: The number is higher!")
+        except ValueError:
+            print("Please enter a valid integer.")
+
+def play_game():
+    target = random.randint(1, 100)
+    print("\n--- Let's play! ---")
+    
+    # A* Guessing by computer
+    print("\nThe computer will start guessing:")
+    computer_steps = a_star_guess(target)
+    
+    # User guessing
+    print("\nNow it's your turn!")
+    user_steps = user_guess(target)
+    
+    print(f"\nResults: Computer took {computer_steps} steps, and you took {user_steps} steps.")
+    print("Thank you for playing!")
+
+def main():
+    while True:
+        menu()
+        choice = input("Enter your choice (1 or 2): ")
+        
+        if choice == '1':
+            play_game()
+        elif choice == '2':
+            print("Exiting the game. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
